@@ -9,6 +9,7 @@
 
 installdir=$PWD
 refdir=$PWD/reference-data
+SKIP_REF=${SKIP_REF:-0}
 toolspec=$PWD/pipelines/pipeline_config.groovy
 bpipeconfig=$PWD/pipelines/bpipe.config
 bpipeconfig_template=$PWD/pipelines/config-examples/bpipe.config_template
@@ -121,10 +122,14 @@ for j in $jarfiles ; do
     echo "$j=\"$PWD/bin/${j}.jar\"" >> $toolspec
 done
 
-if [ ! -f $refdir/hg19.PCRfreeWGS_143_STRetch_controls.tsv ] ; then
-    mkdir -p $refdir
-    echo "Downloading reference data"
-    download_hg19
+if [ "$SKIP_REF" = "1" ] ; then
+    echo "SKIP_REF=1, skipping hg19 reference download"
+else
+    if [ ! -f $refdir/hg19.PCRfreeWGS_143_STRetch_controls.tsv ] ; then
+        mkdir -p $refdir
+        echo "Downloading reference data"
+        download_hg19
+    fi
 fi
 
 echo >> $toolspec
@@ -177,7 +182,9 @@ done
 echo "**********************************************************"
 
 #check for reference data
-if [ ! -f $refdir/hg19.PCRfreeWGS_143_STRetch_controls.tsv ] ; then
+if [ "$SKIP_REF" = "1" ] ; then
+    echo "SKIP_REF=1, reference data intentionally skipped"
+elif [ ! -f $refdir/hg19.PCRfreeWGS_143_STRetch_controls.tsv ] ; then
     echo -n "WARNING: reference files could not be found!!!! "
     echo "You will need to download them manually, then add the path to $toolspec"
 else
