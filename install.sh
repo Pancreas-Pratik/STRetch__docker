@@ -76,6 +76,10 @@ function python_install {
         rm miniconda.sh
     fi
 
+    # Required for newer Miniconda/Anaconda in non-interactive Docker builds
+    "$PWD/miniconda/bin/conda" tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main || true
+    "$PWD/miniconda/bin/conda" tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r || true
+
     "$PWD/miniconda/bin/conda" config --add channels defaults
     "$PWD/miniconda/bin/conda" config --add channels bioconda
     "$PWD/miniconda/bin/conda" config --add channels conda-forge
