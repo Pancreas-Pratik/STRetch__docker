@@ -29,6 +29,35 @@ fi
 commands="bpipe python goleft bedtools bwa samtools mosdepth"
 jarfiles="bazam picard"
 
+# Tools installed by the Miniconda STR environment.
+conda_commands="python goleft bedtools mosdepth"
+
+function is_conda_command {
+    case " $conda_commands " in
+        *" $1 "*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+function resolve_tool {
+    local c=$1
+
+    # 1) Prefer STRetch tools/bin symlinks.
+    if [ -x "$PWD/bin/$c" ] ; then
+        echo "$PWD/bin/$c"
+        return 0
+    fi
+
+    # 2) Then check the Miniconda STR environment directly.
+    if [ -x "$PWD/miniconda/envs/STR/bin/$c" ] ; then
+        echo "$PWD/miniconda/envs/STR/bin/$c"
+        return 0
+    fi
+
+    # 3) Finally check system/container PATH.
+    command -v "$c" 2>/dev/null
+}
+
 #installation method
 function bpipe_install {
     wget -O bpipe-0.9.9.5.tar.gz https://github.com/ssadedin/bpipe/releases/download/0.9.9.5/bpipe-0.9.9.5.tar.gz
@@ -105,12 +134,24 @@ echo >> $toolspec
 echo "// Paths to tools used by the pipeline" >> $toolspec
 
 for c in $commands ; do
-    c_path=`which $PWD/bin/$c 2>/dev/null`
-    if [ -z $c_path ] ; then
-	echo "$c not found, fetching it"
-	${c}_install
-	c_path=`which $PWD/bin/$c 2>/dev/null`
+    c_path=$(resolve_tool "$c")
+
+    if [ -z "$c_path" ] ; then
+        echo "$c not found, fetching it"
+
+        if is_conda_command "$c" ; then
+            # python_install creates the STR conda env containing:
+            # python, goleft, bedtools, mosdepth, etc.
+            if [ ! -x "$PWD/miniconda/envs/STR/bin/python" ] ; then
+                python_install
+            fi
+        else
+            ${c}_install
+        fi
+
+        c_path=$(resolve_tool "$c")
     fi
+
     echo "$c=\"$c_path\"" >> $toolspec
 done
 
@@ -158,13 +199,14 @@ echo "**********************************************************"
 echo "Checking that all required tools were installed:"
 Final_message="All commands installed successfully!"
 for c in $commands ; do
-    c_path=`which $PWD/bin/$c 2>/dev/null`
-    if [ -z $c_path ] ; then
-	echo -n "WARNING: $c could not be found!!!! "
-	echo "You will need to download and install $c manually, then add its path to $toolspec"
-	Final_message="WARNING: One or more command did not install successfully. See warning messages above. You will need to correct this before running STRetch."
+    c_path=$(resolve_tool "$c")
+
+    if [ -z "$c_path" ] ; then
+        echo -n "WARNING: $c could not be found!!!! "
+        echo "You will need to download and install $c manually, then add its path to $toolspec"
+        Final_message="WARNING: One or more command did not install successfully. See warning messages above. You will need to correct this before running STRetch."
     else
-        echo "$c looks like it has been installed"
+        echo "$c looks like it has been installed at $c_path"
     fi
 done
 
