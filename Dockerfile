@@ -30,7 +30,7 @@ RUN git clone https://github.com/Pancreas-Pratik/STRetch__docker.git STRetch
 
 WORKDIR /opt/STRetch
 
-RUN bash install.sh || true
+RUN bash install.sh
 
 ENV PATH="/opt/STRetch/tools/bin:/opt/STRetch/tools/miniconda/envs/STR/bin:${PATH}"
 
