@@ -30,11 +30,7 @@ RUN git clone https://github.com/Pancreas-Pratik/STRetch__docker.git STRetch
 
 WORKDIR /opt/STRetch
 
-RUN bash install.sh && \
-    ln -sf /opt/STRetch/tools/miniconda/envs/STR/bin/python   /opt/STRetch/tools/bin/python && \
-    ln -sf /opt/STRetch/tools/miniconda/envs/STR/bin/goleft   /opt/STRetch/tools/bin/goleft && \
-    ln -sf /opt/STRetch/tools/miniconda/envs/STR/bin/bedtools /opt/STRetch/tools/bin/bedtools && \
-    ln -sf /opt/STRetch/tools/miniconda/envs/STR/bin/mosdepth /opt/STRetch/tools/bin/mosdepth
+RUN bash install.sh
 
 ENV PATH="/opt/STRetch/tools/bin:/opt/STRetch/tools/miniconda/envs/STR/bin:${PATH}"
 
