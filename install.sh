@@ -68,12 +68,31 @@ function bpipe_install {
 # Installs miniconda, Python 3 + required packages, BedTools and goleft
 # (and any other dependancies listed in environment.yml)
 function python_install {
-    wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
-    bash miniconda.sh -b -p $PWD/miniconda
-    rm miniconda.sh
-    $PWD/miniconda/bin/conda env create -f ../environment.yml
-    ln -s $PWD/miniconda/envs/STR/bin/* $PWD/bin/
-#    source activate STR
+    echo "Installing Miniconda + STR conda environment"
+
+    if [ ! -x "$PWD/miniconda/bin/conda" ] ; then
+        wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+        bash miniconda.sh -b -p "$PWD/miniconda"
+        rm miniconda.sh
+    fi
+
+    "$PWD/miniconda/bin/conda" config --add channels defaults
+    "$PWD/miniconda/bin/conda" config --add channels bioconda
+    "$PWD/miniconda/bin/conda" config --add channels conda-forge
+    "$PWD/miniconda/bin/conda" config --set channel_priority flexible
+
+    if [ ! -x "$PWD/miniconda/envs/STR/bin/python" ] ; then
+        "$PWD/miniconda/bin/conda" env create -f ../environment.yml
+    fi
+
+    for tool in python goleft bedtools mosdepth ; do
+        if [ ! -x "$PWD/miniconda/envs/STR/bin/$tool" ] ; then
+            echo "ERROR: $tool was not created in $PWD/miniconda/envs/STR/bin"
+            echo "The conda environment failed or environment.yml did not install $tool."
+            exit 1
+        fi
+        ln -sf "$PWD/miniconda/envs/STR/bin/$tool" "$PWD/bin/$tool"
+    done
 }
 
 function bwa_install {
