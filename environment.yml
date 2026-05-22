@@ -4,9 +4,9 @@ channels:
 - bioconda
 dependencies:
 # Python
-- python=3*
-- BioPython
-- PyVCF
+- python=3.7
+- biopython
+- pyvcf
 - pysam
 - pandas
 - statsmodels
@@ -16,8 +16,8 @@ dependencies:
 - numpy
 - pybedtools
 # only required for development
-- pytest
-- coverage
+#- pytest
+#- coverage
 # command line tools
 - bedtools
 - htslib
